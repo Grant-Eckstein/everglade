@@ -14,26 +14,24 @@ func TestPad(t *testing.T) {
 
 	if !bytes.Equal(trim(pad(text, aes.BlockSize), aes.BlockSize), text) {
 		t.Errorf("[!] Padding error")
+		t.Logf("%x\n", trim(pad(text, aes.BlockSize), aes.BlockSize))
 	}
 }
 
 func TestCBCEncryption(t *testing.T) {
 
 	type testPair struct {
-		key        []byte
-		iv         []byte
+		key        CBCKey
 		ciphertext []byte
 		plaintext  [2][]byte
 	}
 
 	test := testPair{}
-
-	test.key, _ = getBytes(aes.BlockSize)
-	test.iv, _ = getBytes(aes.BlockSize)
+	test.key = NewCBCKey()
 	test.plaintext[0] = []byte("hello, world")
 
-	test.ciphertext = encryptCBC(test.key, test.plaintext[0], test.iv)
-	test.plaintext[1] = trim(decryptCBC(test.key, test.ciphertext), aes.BlockSize)
+	test.ciphertext = encryptCBC(test.key.key, test.plaintext[0], test.key.iv)
+	test.plaintext[1] = trim(decryptCBC(test.key.key, test.ciphertext), aes.BlockSize)
 
 	t.Logf("plaintext[0] \t:%x", test.plaintext[0])
 	t.Logf("plaintext[1] \t:%x", test.plaintext[1])
