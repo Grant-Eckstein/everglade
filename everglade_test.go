@@ -22,71 +22,32 @@ func TestPad(t *testing.T) {
 	}
 }
 
-func TestEncryption(t *testing.T) {
-	key, _ := getBytes(aes.BlockSize)
-	plaintext, _ := getBytes(aes.BlockSize * 3)
+func TestCBCEncryption(t *testing.T) {
 
-	t.Logf("Key \t :%x", key)
-	t.Logf("Plaintext :%x", plaintext)
-
-	ciphertext := encrypt(key, plaintext)
-	if bytes.Equal(plaintext, decrypt(key, ciphertext)) != true {
-		t.Errorf("[!] Crypto error")
+	type testPair struct {
+		key        []byte
+		iv         []byte
+		ciphertext []byte
+		plaintext  [2][]byte
 	}
 
-}
+	test := testPair{}
 
-type SubKeyTestData struct {
-	key        []byte
-	plaintext  []byte
-	ciphertext []byte
-}
+	test.key, _ = getBytes(aes.BlockSize)
+	test.iv, _ = getBytes(aes.BlockSize)
+	test.plaintext[0] = []byte("hello, world")
 
-type SubKeyTest struct {
-	keys []SubKeyTestData
-}
+	test.ciphertext = encryptCBC(test.key, test.plaintext[0], test.iv)
+	test.plaintext[1] = trim(decryptCBC(test.key, test.ciphertext), aes.BlockSize)
 
-func NewSubKeyTest(n int) SubKeyTest {
+	// t.Errorf("test.plaintext[0] :%x\ntest.ciphertext :%x\n", test.plaintext[0], test.plaintext[1])
+	t.Logf("plaintext[0] \t:%x", test.plaintext[0])
+	t.Logf("plaintext[1] \t:%x", test.plaintext[1])
+	t.Logf("ciphertext \t:%x", trim(test.ciphertext, aes.BlockSize))
+	if !bytes.Equal(test.plaintext[0], test.plaintext[1]) {
+		t.Error("CBC Crypo Error!")
 
-	masterKey, _ := getPass()
-	keySession := NewFileKey(masterKey)
-
-	subKeyTest := SubKeyTest{}
-
-	for i := 1; i <= n; i++ {
-		key := keySession.getKey()[:aes.BlockSize]
-		plaintext, _ := getBytes(aes.BlockSize)
-		ciphertext := encrypt(key, plaintext)
-
-		subKeyTest.keys = append(subKeyTest.keys, SubKeyTestData{key, plaintext, ciphertext})
 	}
-	return subKeyTest
-}
+	// t.Errorf("error %x\n", test.ciphertext)a
 
-/*
- * Here I
- * 1 - Create 2 subkeys
- * 2 - encrypt string 2 times
- * 3 - export master key
- * 4 - import master key
- * 5 - decrypt string 2 times
- */
-func TestSubKeys(t *testing.T) {
-
-	// Collect tests
-	subKeys := NewSubKeyTest(2)
-	importedKeys := SubKeyTest{}
-
-	// Import tests
-	for _, test := range subKeys.keys {
-		importedKeys.keys = append(importedKeys.keys, test)
-	}
-
-	// Display tests
-	for _, test := range importedKeys.keys {
-		t.Logf("---")
-		t.Logf("Key \t\t:%x", test.key)
-		t.Logf("Plaintext \t:%x", test.plaintext)
-		t.Logf("Ciphertext \t:%x", test.ciphertext)
-	}
 }
