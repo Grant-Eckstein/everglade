@@ -199,6 +199,9 @@ func decryptGCM(gcmKey GCMKey, ct []byte) []byte {
 
 // Pads data
 func pad(b []byte, blocksize int) []byte {
+	if len(b)%blocksize == 0 {
+		return b
+	}
 	n := blocksize - (len(b) % blocksize)
 	pb := make([]byte, len(b)+n)
 	copy(pb, b)
@@ -208,6 +211,9 @@ func pad(b []byte, blocksize int) []byte {
 
 // Trims padding
 func trim(b []byte, blocksize int) []byte {
+	if len(b)%blocksize == 0 {
+		return b
+	}
 	c := b[len(b)-1]
 	n := int(c)
 	return b[:len(b)-n]
