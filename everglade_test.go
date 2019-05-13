@@ -6,19 +6,14 @@ import (
 	"testing"
 )
 
-/*
-// Test error handling
-if err != nil {
-		t.Errorf("[!] Caught error [%s]", err)
-	}
-*/
-
 func TestPad(t *testing.T) {
 	text := []byte("Hello, world!")
+
+	t.Logf("Padded \t:[%s]", trim(pad(text, aes.BlockSize), aes.BlockSize))
+	t.Logf("Original \t:[%s]", text)
+
 	if !bytes.Equal(trim(pad(text, aes.BlockSize), aes.BlockSize), text) {
 		t.Errorf("[!] Padding error")
-		t.Logf("Padded \t:[%s]", trim(pad(text, aes.BlockSize), aes.BlockSize))
-		t.Logf("Original \t:[%s]", text)
 	}
 }
 
@@ -40,14 +35,13 @@ func TestCBCEncryption(t *testing.T) {
 	test.ciphertext = encryptCBC(test.key, test.plaintext[0], test.iv)
 	test.plaintext[1] = trim(decryptCBC(test.key, test.ciphertext), aes.BlockSize)
 
-	// t.Errorf("test.plaintext[0] :%x\ntest.ciphertext :%x\n", test.plaintext[0], test.plaintext[1])
 	t.Logf("plaintext[0] \t:%x", test.plaintext[0])
 	t.Logf("plaintext[1] \t:%x", test.plaintext[1])
 	t.Logf("ciphertext \t:%x", trim(test.ciphertext, aes.BlockSize))
+
 	if !bytes.Equal(test.plaintext[0], test.plaintext[1]) {
-		t.Error("CBC Crypo Error!")
+		t.Error("CBC Error!")
 
 	}
-	// t.Errorf("error %x\n", test.ciphertext)a
 
 }
