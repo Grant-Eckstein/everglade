@@ -40,8 +40,32 @@ func TestCBCEncryption(t *testing.T) {
 	t.Logf("ciphertext \t:%x", trim(test.ciphertext, aes.BlockSize))
 
 	if !bytes.Equal(test.plaintext[0], test.plaintext[1]) {
-		t.Error("CBC Error!")
+		t.Error("CBC Error\n")
 
 	}
 
+}
+
+func TestGCMEncryption(t *testing.T) {
+
+	type testPair struct {
+		key        GCMKey
+		ciphertext []byte
+		plaintext  [2][]byte
+	}
+
+	test := testPair{}
+
+	test.key = NewGMCKey()
+	test.plaintext[0] = []byte("test")
+	test.ciphertext = encryptGCM(test.key, test.plaintext[0])
+	test.plaintext[1] = decryptGCM(test.key, test.ciphertext)
+
+	t.Logf("plaintext[0] \t:%x", test.plaintext[0])
+	t.Logf("plaintext[1] \t:%x", test.plaintext[1])
+	t.Logf("ciphertext \t:%x", test.ciphertext)
+
+	if !bytes.Equal(test.plaintext[0], test.plaintext[1]) {
+		t.Errorf("GCM error\n")
+	}
 }
