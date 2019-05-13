@@ -211,9 +211,6 @@ func pad(b []byte, blocksize int) []byte {
 
 // Trims padding
 func trim(b []byte, blocksize int) []byte {
-	if len(b)%blocksize == 0 {
-		return b
-	}
 	c := b[len(b)-1]
 	n := int(c)
 	return b[:len(b)-n]
