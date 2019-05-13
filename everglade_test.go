@@ -9,8 +9,8 @@ import (
 func TestPad(t *testing.T) {
 	text := []byte("Hello, world!")
 
-	t.Logf("Padded \t:[%s]", trim(pad(text, aes.BlockSize), aes.BlockSize))
-	t.Logf("Original \t:[%s]", text)
+	t.Logf("Padded \t:[%x]", pad(text, aes.BlockSize))
+	t.Logf("Original \t:[%x]", text)
 
 	if !bytes.Equal(trim(pad(text, aes.BlockSize), aes.BlockSize), text) {
 		t.Errorf("[!] Padding error")
