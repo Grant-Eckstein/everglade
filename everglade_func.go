@@ -125,13 +125,14 @@ func NewGMCKey() GCMKey {
 /* --- Encryption Methods --- */
 
 func encryptCBC(key []byte, plaintext []byte, iv []byte) []byte {
-	block, err := aes.NewCipher(pad(key, aes.BlockSize)[:aes.BlockSize])
-	if err != nil {
-		panic(err)
+	block, err := aes.NewCipher(pad(key, aes.BlockSize))
+	check(err)
+	if len(plaintext)%aes.BlockSize != 0 {
+		plaintext = pad(plaintext, block.BlockSize())
 	}
-	plaintext = pad(plaintext, block.BlockSize())
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
 	bm := cipher.NewCBCEncrypter(block, iv)
+	ciphertext = append(iv, make([]byte, len(plaintext))...)
 	bm.CryptBlocks(ciphertext[aes.BlockSize:], plaintext)
 	return ciphertext
 }
@@ -139,13 +140,10 @@ func encryptCBC(key []byte, plaintext []byte, iv []byte) []byte {
 func decryptCBC(key []byte, ciphertext []byte) []byte {
 	block, err := aes.NewCipher(pad(key, aes.BlockSize))
 	check(err)
-
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
-
 	bm := cipher.NewCBCDecrypter(block, iv)
 	bm.CryptBlocks(ciphertext, ciphertext)
-	ciphertext = trim(ciphertext, aes.BlockSize)
 	return ciphertext
 }
 
