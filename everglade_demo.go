@@ -2,44 +2,38 @@ package main
 
 import (
 	"fmt"
+	"encoding/json"
 )
 
-/*
- * TODO, add layering to encrypt() WITH ephemeral subkeys
- * TODO, add KeyList.export(exportKey []GCMKey) []byte
- * 		-> Join each element with delimiter (perhaps strings.Join?), then encrypt and return
- */
+type test struct {
+	Name string
+	Age int
+}
+
 
 func main() {
+	pt := "Hello, world!"
 
-	// @Payload body -> Descover & Initialize file objects
-	files := DiscoverFilesInDirectory(".")
+	// Encrypt
+	key := GenerateGMCKey()
+	ct := key.encrypt([]byte(pt))
 
-	// @Payload body -> Encrypt files
-	for _, f := range files.files {
+	// Decrypt
+	dKey := GMCKey(key.NonceLength, key.Nonce, key.Key, key.Salt, key.CbcKey.Key, key.CbcKey.Iv)
+	result := dKey.decrypt(ct)
 
-		// key := keys.newKey()
-		fmt.Printf("[!] Encrypting file [%s] with key %x...\n", string(f.name), f.key.key)
-		f.encrypt()
-	}
+	fmt.Println(string(result))
 
-	// @Demo -> Decrypt files
-	for _, f := range files.files {
+	sJson, _ := json.Marshal(&dKey)
+	fmt.Println(string(sJson))
 
-		// key := keys.getKey(i)
-		fmt.Printf("[!] Decrypting file [%s] with key %x...\n", string(f.name), f.key.key)
-		f.decrypt()
+	eKey := GCMKey{}
+	json.Unmarshal(sJson, &eKey)
 
-	}
+	pt = "Test2"
+	ct = eKey.encrypt([]byte(pt))
+	result = eKey.decrypt(ct)
+	fmt.Println(string(result))
 
-	// @Demo -> Print keys
-	for _, f := range files.files {
-		// key.print()
-		f.key.print()
-	}
-
-	// @Demo -> Export keys
-	// exportedKeys, exportKey := files.exportKeys()
-	// fmt.Printf("Exported [%x] with key %x\n", exportedKeys, exportKey)
 
 }

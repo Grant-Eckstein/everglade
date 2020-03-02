@@ -5,7 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"fmt"
+
 
 	"golang.org/x/crypto/blake2b"
 )
@@ -18,18 +18,18 @@ func check(e error) {
 
 // CBCKey organizes CBC keys with nonce
 type CBCKey struct {
-	key []byte
-	iv  []byte
+	Key []byte
+	Iv  []byte
 }
 
 // GCMKey organizes GCM keys with nonce
 type GCMKey struct {
-	key         []byte
-	keyID       int
-	salt        []byte
-	nonce       []byte
-	nonceLength int
-	cbcKey      CBCKey
+	Key         []byte
+	KeyID       int
+	Salt        []byte
+	Nonce       []byte
+	NonceLength int
+	CbcKey      CBCKey
 }
 
 /* --- Type Constructors --- */
@@ -38,42 +38,56 @@ type GCMKey struct {
 func NewCBCKey() CBCKey {
 	cbcKey := CBCKey{}
 
-	cbcKey.key, _ = getBytes(aes.BlockSize)
-	cbcKey.iv, _ = getBytes(aes.BlockSize)
+	cbcKey.Key, _ = getBytes(aes.BlockSize)
+	cbcKey.Iv, _ = getBytes(aes.BlockSize)
 	return cbcKey
 }
 
 // NewGMCKey initializes GMCKey with key, salt, and nonce
-func NewGMCKey() GCMKey {
+func GenerateGMCKey() GCMKey {
 	gcmKey := GCMKey{}
-	gcmKey.nonceLength = 12
+	gcmKey.NonceLength = 12
 
 	// Never use more than 2^32 random nonces with a given key because of the risk of a repeat.
-	gcmKey.nonce, _ = getBytes(gcmKey.nonceLength)
-	gcmKey.key, gcmKey.salt = getPass()
+	gcmKey.Nonce, _ = getBytes(gcmKey.NonceLength)
+	gcmKey.Key, gcmKey.Salt = getPass()
 
-	gcmKey.cbcKey = NewCBCKey()
+	gcmKey.CbcKey = NewCBCKey()
+
+	return gcmKey
+}
+
+func GMCKey(nL int, n []byte, k []byte, s []byte, cK []byte, cI []byte) GCMKey {
+	gcmKey := GCMKey{}
+	gcmKey.NonceLength = nL
+
+	gcmKey.Nonce = n
+	gcmKey.Key = k
+	gcmKey.Salt = s
+
+	gcmKey.CbcKey.Key = cK
+	gcmKey.CbcKey.Iv = cI
 
 	return gcmKey
 }
 
 /* --- Encryption Methods --- */
 
-func encryptCBC(key []byte, plaintext []byte, iv []byte) []byte {
-	block, err := aes.NewCipher(pad(key, aes.BlockSize))
+func (k *CBCKey) encrypt(plaintext []byte) []byte {
+	block, err := aes.NewCipher(pad(k.Key, aes.BlockSize))
 	check(err)
 	if len(plaintext)%aes.BlockSize != 0 {
 		plaintext = pad(plaintext, block.BlockSize())
 	}
 	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
-	bm := cipher.NewCBCEncrypter(block, iv)
-	ciphertext = append(iv, make([]byte, len(plaintext))...)
+	bm := cipher.NewCBCEncrypter(block, k.Iv)
+	ciphertext = append(k.Iv, make([]byte, len(plaintext))...)
 	bm.CryptBlocks(ciphertext[aes.BlockSize:], plaintext)
 	return ciphertext
 }
 
-func decryptCBC(key []byte, ciphertext []byte) []byte {
-	block, err := aes.NewCipher(pad(key, aes.BlockSize))
+func (k *CBCKey) decrypt(ciphertext []byte) []byte {
+	block, err := aes.NewCipher(pad(k.Key, aes.BlockSize))
 	check(err)
 	iv := ciphertext[:aes.BlockSize]
 	ciphertext = ciphertext[aes.BlockSize:]
@@ -82,51 +96,37 @@ func decryptCBC(key []byte, ciphertext []byte) []byte {
 	return ciphertext
 }
 
-// @DEBUG Prints each element of GCMKey #TODO automate this
-func (k *GCMKey) print() {
-	fmt.Printf("---Start Key---\n")
-	fmt.Printf("KeyID :%v\n", k.keyID)
-	fmt.Printf("Salt :%x\n", k.salt)
-	fmt.Printf("Nonce :%x\n", k.nonce)
-	fmt.Printf("Key :%x\n", k.key)
-	fmt.Printf("\t---Start SubKey---\n")
-	fmt.Printf("\tIV :%x\n", k.cbcKey.iv)
-	fmt.Printf("\tKey :%x\n", k.cbcKey.key)
-	fmt.Printf("\t---End SubKey---\n")
-	fmt.Printf("---End Key---\n")
-
-}
 
 // Encrypts authenticated data
-func encryptGCM(gcmKey GCMKey, pt []byte) []byte {
-	block, err := aes.NewCipher(gcmKey.key)
+func (gcmKey *GCMKey) encrypt(pt []byte) []byte {
+	block, err := aes.NewCipher(gcmKey.Key)
 	check(err)
 
 	aesgcm, err := cipher.NewGCM(block)
 	check(err)
 
 	// Using the encrypted nonce for the Authenticated Data
-	ad := encryptCBC(gcmKey.cbcKey.key, gcmKey.nonce, gcmKey.cbcKey.iv)
+	ad := gcmKey.CbcKey.encrypt(gcmKey.Nonce)
 
 	var ciphertext []byte
-	ciphertext = aesgcm.Seal(ciphertext, gcmKey.nonce, pt, ad)
+	ciphertext = aesgcm.Seal(ciphertext, gcmKey.Nonce, pt, ad)
 	return ciphertext
 }
 
 // Decrypts authenticated data
-func decryptGCM(gcmKey GCMKey, ct []byte) []byte {
+func (gcmKey *GCMKey) decrypt(ct []byte) []byte {
 
-	block, err := aes.NewCipher(gcmKey.key)
+	block, err := aes.NewCipher(gcmKey.Key)
 	check(err)
 
 	aesgcm, err := cipher.NewGCM(block)
 	check(err)
 
 	// Using the encrypted nonce for the Authenticated Data
-	ad := encryptCBC(gcmKey.cbcKey.key, gcmKey.nonce, gcmKey.cbcKey.iv)
+	ad := gcmKey.CbcKey.encrypt(gcmKey.Nonce)
 
 	var pt []byte
-	pt, err = aesgcm.Open(pt, gcmKey.nonce, ct, ad)
+	pt, err = aesgcm.Open(pt, gcmKey.Nonce, ct, ad)
 	check(err)
 
 	return pt

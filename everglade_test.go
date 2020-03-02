@@ -54,9 +54,9 @@ func TestGCMEncryption(t *testing.T) {
 
 	test := testPair{}
 
-	test.key = NewGMCKey()
+	test.key = GenerateGMCKey()
 	test.plaintext[0] = []byte("test")
-	test.ciphertext = encryptGCM(test.key, test.plaintext[0])
+	test.ciphertext = test.key.encrypt(test.plaintext[0])
 	test.plaintext[1] = decryptGCM(test.key, test.ciphertext)
 
 	t.Logf("plaintext[0] \t:%x", test.plaintext[0])

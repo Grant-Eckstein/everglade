@@ -39,9 +39,9 @@ func (fs *FileList) export() ([]byte, GCMKey) {
 func (kl *KeyList) newKey() GCMKey {
 	kl.ivLength = aes.BlockSize
 
-	key := NewGMCKey()
+	key := GenerateGMCKey()
 
-	key.keyID = len(kl.keys)
+	key.KeyID = len(kl.keys)
 
 	kl.keys = append(kl.keys, key)
 
@@ -51,7 +51,7 @@ func (kl *KeyList) newKey() GCMKey {
 // getKey returns key given ID in KeyList
 func (kl *KeyList) getKey(keyID int) GCMKey {
 	for _, key := range kl.keys {
-		if key.keyID == keyID {
+		if key.KeyID == keyID {
 			return key
 		}
 	}
@@ -62,6 +62,6 @@ func (kl *KeyList) getKey(keyID int) GCMKey {
 // printAllKeys returns key given ID in KeyList
 func (kl *KeyList) printAllKeys() {
 	for _, key := range kl.keys {
-		fmt.Printf("KeyID:%v Key:%x\n", key.keyID, key.key)
+		fmt.Printf("KeyID:%v Key:%x\n", key.KeyID, key.Key)
 	}
 }
