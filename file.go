@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 type File struct {
@@ -37,7 +38,7 @@ func DiscoverFilesInDirectory(dir, ex string) (error, FileList) {
 		fn = os.Args[0]
 	}
 
-	err := filepath.Walk(".",
+	err := filepath.Walk(dir,
 		func(p string, info os.FileInfo, err error) error {
 			if err != nil {
 				return getError(fileWalkRead, err)
@@ -51,6 +52,42 @@ func DiscoverFilesInDirectory(dir, ex string) (error, FileList) {
 		return getError(fileWalk, err), FileList{}
 	}
 	return nil, fl
+}
+
+// FindFileInDirectory takes a directory and a filename and returns the relitive path of that file if exists
+func FindFileInDirectory(dir, fn string) (error, string) {
+	err, fs := DiscoverFilesInDirectory(dir, "")
+	if err != nil {
+		return getError(fileWalk, err), ""
+	}
+
+	for _, f := range fs.Files {
+		name := strings.Split(f.Name, string(os.PathSeparator))
+		if name[len(name)-1] == fn {
+			return nil, f.Name
+		}
+	}
+	return nil, ""
+}
+
+// FindFilesByTypeInDirectory returns the relative path of all files in the directory of a specific extension
+func FindFilesByTypeInDirectory(dir, ex string) (error, FileList) {
+	r := FileList{}
+	err, fs := DiscoverFilesInDirectory(dir, "")
+	if err != nil {
+		return getError(fileWalk, err), r
+	}
+
+	for _, f := range fs.Files {
+		path := strings.Split(f.Name, string(os.PathSeparator))
+		name := path[len(path)-1]
+		ext := strings.Split(name, string(os.PathSeparator))
+
+		if ext[len(ext)-1] == ex {
+			r.addFile(f.Name)
+		}
+	}
+	return nil, r
 }
 
 // EncryptCBC encrypts a file with AES-CBC-256 using the given Object
