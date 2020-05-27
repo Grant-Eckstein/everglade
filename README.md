@@ -1,23 +1,20 @@
 # Everglade
-*A file encryption framework*
+*An encryption framework*
 
 #### Overview
-So, this framework has a few main features, namely:
-1. File encryption
-2. File management
-3. Key management
+Everglade steamlines encryption suite implementation with 
+Golang into a safe and simplistic process. Currently Everglade supports 
+Salted AES-GCM-256, AES-CBC-256, SHA256, and RSA Encryption/Signing.
 
-###### File Encryption
-File encryption in Everglade is the main concern. The idea here is to make secure management of files super easy. This is done by file discovery and support encryption functions.
+##### File Encryption
+Everglade can also process files.
+###### Directory Enumeration
+Everglade has the capability to:
+1. Recursively map directories
+2. Search a directory recursively for a file
+3. Search a directory recursively for all files of a given type 
+ 
+#### Examples
+For examples see test units.
 
-###### Example Usage
-```go
-//  Discovers all files in current directory and then encrypts and decrypts them!
-files := DiscoverFilesInDirectory(".")
-for _, f := range files.files {
-    f.encrypt()
-}
-for _, f := range files.files {
-    f.decrypt()
-}
-```
+
