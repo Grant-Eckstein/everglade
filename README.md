@@ -1,4 +1,4 @@
-# Everglade [![Go Report Card](https://goreportcard.com/badge/github.com/GrantEthanEckstein/gonet)](https://goreportcard.com/report/github.com/GrantEthanEckstein/gonet) [![GoDoc](https://godoc.org/github.com/GrantEthanEckstein/everglade?status.svg)](https://godoc.org/github.com/GrantEthanEckstein/everglade)
+# Everglade [![Go Report Card](https://goreportcard.com/badge/github.com/Grant-Eckstein/everglade)](https://goreportcard.com/report/github.com/Grant-Eckstein/everglade) [![GoDoc](https://godoc.org/github.com/Grant-Eckstein/everglade?status.svg)](https://godoc.org/github.com/Grant-Eckstein/everglade)
 *An encryption framework*
 
 #### Overview
