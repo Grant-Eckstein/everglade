@@ -95,3 +95,28 @@ func TestEverglade_EncryptDecryptLayers(t *testing.T) {
 		t.Fatal("Output did not match input")
 	}
 }
+
+func ExampleEverglade_Encrypt() {
+	// File to encrypt in this test
+	fn := "everglade.go"
+
+	// e.blind houses your keys and can be exported to/from if needed.
+	e, err := New(1)
+	if err != nil {
+		panic(err)
+	}
+
+	// Add the files to encrypt to this list
+	err = e.Add(fn)
+	if err != nil {
+		panic(err)
+	}
+
+	// Encrypt the files that were added with AES-CBC-128.
+	// This includes a random nonce and IV.
+	err = e.Encrypt()
+	if err != nil {
+		panic(err)
+	}
+
+}
