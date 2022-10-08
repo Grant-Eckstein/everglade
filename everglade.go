@@ -6,6 +6,7 @@ import (
 
 type Everglade struct {
 	Blind blind.Blind
+	Paths []string
 }
 
 func New() (*Everglade, error) {
