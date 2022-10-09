@@ -26,7 +26,7 @@ func (e *Everglade) Encrypt() error {
 			}
 
 			// Encrypt the file
-			ct, err := e.Blind.AES.Encrypt(d)
+			ct, err := e.Blind.AES.CBC.Encrypt(d)
 			if err != nil {
 				return err
 			}
@@ -53,7 +53,7 @@ func (e *Everglade) Decrypt() error {
 			}
 
 			// Decrypt the file
-			pt, err := e.Blind.AES.Decrypt(d)
+			pt, err := e.Blind.AES.CBC.Decrypt(d)
 			if err != nil {
 				return err
 			}
