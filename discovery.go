@@ -7,14 +7,15 @@ import (
 )
 
 // DiscoverFilesInDirectory automates discovery of files in directory and returns []string
-func DiscoverFilesInDirectory(dir, ex string) ([]string, error) {
+func DiscoverFilesInDirectory(dir string) ([]string, error) {
 	var fl []string
 	err := filepath.Walk(dir,
+		// For each file/folder in dir: append to fl if it isn't a directory
 		func(p string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
-			if !info.IsDir() && p != ex {
+			if !info.IsDir() {
 				fl = append(fl, p)
 			}
 			return nil
@@ -27,7 +28,7 @@ func DiscoverFilesInDirectory(dir, ex string) ([]string, error) {
 
 // FindFileInDirectory takes a directory and a filename and returns the relative path of that file if exists
 func FindFileInDirectory(dir, fn string) (string, error) {
-	fs, err := DiscoverFilesInDirectory(dir, "")
+	fs, err := DiscoverFilesInDirectory(dir)
 	if err != nil {
 		return "", err
 	}
@@ -41,20 +42,19 @@ func FindFileInDirectory(dir, fn string) (string, error) {
 	return "", nil
 }
 
-// FindFilesByTypeInDirectory returns the relative path of all files in the directory of a specific extension
+// FindFilesByTypeInDirectory returns the path of all files in the directory of a specific extension
 func FindFilesByTypeInDirectory(dir, ex string) ([]string, error) {
-	var r []string
-	fs, err := DiscoverFilesInDirectory(dir, "")
+	// Discover all files
+	fs, err := DiscoverFilesInDirectory(dir)
 	if err != nil {
 		return nil, err
 	}
 
+	// For each file, compare its extension to the target extension
+	var r []string
 	for _, f := range fs {
-		path := strings.Split(f, string(os.PathSeparator))
-		name := path[len(path)-1]
-		ext := strings.Split(name, string(os.PathSeparator))
-
-		if ext[len(ext)-1] == ex {
+		fileExt := filepath.Ext(f)
+		if fileExt == ex {
 			r = append(r, f)
 		}
 	}
