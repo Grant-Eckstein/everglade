@@ -16,7 +16,7 @@ func createTestArea(filename string) (string, error) {
 
 	// Write to temp file
 	fn := filepath.Join(dir, filename)
-	err = os.WriteFile(fn, content, 666)
+	err = os.WriteFile(fn, content, 777)
 	if err != nil {
 		return "", err
 	}
