@@ -1,26 +1,10 @@
 package everglade
 
-import (
-	"bytes"
-	"testing"
-)
+import "testing"
 
-func TestObject_Export_Import(t *testing.T) {
-	eo := New()
-	mesg := []byte("Hello, world!")
-	err, salt := Bytes(32)
+func TestNew(t *testing.T) {
+	_, err := New(1)
 	if err != nil {
-		t.Fatal(getError(bytesGeneration, err))
-	}
-
-	eh := eo.Hash(salt, mesg)
-
-	j := eo.Export()
-
-	io := Import(j)
-	ih := io.Hash(salt, mesg)
-
-	if !bytes.Equal(ih, eh) {
-		t.Fatal("Error verifying export process")
+		t.Fatal(err)
 	}
 }
